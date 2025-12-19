@@ -1,0 +1,52 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
+}
+
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  createdAt DateTime @default(now())
+
+  createdTasks  Task[] @relation("UserCreatedTasks")
+  assignedTasks Task[] @relation("UserAssignedTasks")
+}
+
+model Task {
+  id           String   @id @default(uuid())
+  title        String
+  description  String
+  dueDate      DateTime
+  priority     Priority
+  status       Status   @default(TODO)
+
+  creatorId String
+  creator   User @relation("UserCreatedTasks", fields: [creatorId], references: [id])
+
+  assignedToId String?
+  assignee     User? @relation("UserAssignedTasks", fields: [assignedToId], references: [id])
+}
+
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum Status {
+  TODO
+  IN_PROGRESS
+  REVIEW
+  COMPLETED
+}
